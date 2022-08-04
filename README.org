@@ -1,0 +1,33 @@
+#+TITLE: mastodon_exporter
+
+[[https://github.com/DearRude/mastodon_exporter/actions/workflows/build.yml/badge.svg]]
+[[https://img.shields.io/github/license/dearrude/mastodon_exporter.svg]]
+[[https://img.shields.io/github/last-commit/dearrude/mastodon_exporter.svg]]
+
+** Description
+Mastodon exporter is a prometheus metric exporter for mastodon. It aims to both serve as a health checker and gather additional data about a mastodon instance.
+
+mastodon_exporter is not still considered stable.
+
+** Setup
+*** From source
+Have ~go 1.17~ installed in your system.
+
+Make a config file and fill the specified units. Alternatively, configurations
+can be passed in CLI flags or environment variables.
+#+BEGIN_SRC sh
+$ touch config
+$ $EDITOR config
+#+END_SRC
+
+#+BEGIN_SRC sh
+$ go run . -config config
+#+END_SRC
+
+*** Docker
+#+BEGIN_SRC sh
+$ docker run ghcr.io/dearrude/mastodon_exporter:latest
+#+END_SRC
+
+** Licence
+AGPLv3+
