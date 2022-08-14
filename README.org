@@ -11,17 +11,17 @@ mastodon_exporter is not still considered stable.
 
 ** Setup
 *** From source
-Have ~go 1.17~ installed in your system.
+Have ~go 1.19~ installed in your system.
 
 Make a config file and fill the specified units. Alternatively, configurations
 can be passed in CLI flags or environment variables.
 #+BEGIN_SRC sh
-$ touch config
-$ $EDITOR config
+$ cp .env.sample .env
+$ $EDITOR .env
 #+END_SRC
 
 #+BEGIN_SRC sh
-$ go run . -config config
+$ go run .
 #+END_SRC
 
 *** Docker

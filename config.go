@@ -21,12 +21,12 @@ func GenConfig() Config {
 	var (
 		instanceUri   = fs.String("instanceUri", "", "URI of the mastodon instance")
 		checkInterval = fs.Duration("checkInterval", 30*time.Second, "Interval for check requests in go duratrion format")
-		_             = fs.String("config", "", "config file (optional)")
+		_             = fs.String("config", ".env", "config file (optional)")
 	)
 	err := ff.Parse(fs, os.Args[1:],
-		ff.WithEnvVarNoPrefix(),
+		ff.WithEnvVars(),
 		ff.WithConfigFileFlag("config"),
-		ff.WithConfigFileParser(ff.PlainParser),
+		ff.WithConfigFileParser(ff.EnvParser),
 	)
 	if err != nil {
 		log.Fatalf("Unable to parse args. Error: %s", err)
