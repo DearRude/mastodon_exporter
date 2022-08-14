@@ -20,22 +20,30 @@ var (
 		Help: "If /instance endpoint reports a healthy response.",
 	})
 
+	errorsTotal = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "errors_total",
+		Help: "Total errors encountered during runtime",
+	})
+
 	requestsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "requests_total",
 		Help: "Total requests by exporter to mastodon instance.",
 	}, []string{"status", "endpoint"})
 )
 
-func serveMetrics(errorChan chan<- error) {
+func serveMetrics(c *Config, errorChan chan<- error) {
 	registry := prometheus.NewRegistry()
 	reg := prometheus.WrapRegistererWithPrefix("mast_", registry)
 	reg.MustRegister(instanceHealth)
 	reg.MustRegister(requestsTotal)
 
-	errorChan <- registry.Register(collectors.NewGoCollector())
+	if err := registry.Register(collectors.NewGoCollector()); err != nil {
+		errorChan <- err
+		return
+	}
 	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	log.Printf("Serve the metrics http server.")
-	errorChan <- http.ListenAndServe(":2112", nil)
+	errorChan <- http.ListenAndServe(fmt.Sprintf(":%d", c.Port), nil)
 }
 
 func run(c *Config, errorChan chan<- error) {
@@ -51,39 +59,42 @@ func run(c *Config, errorChan chan<- error) {
 
 	log.Printf("Start iterating on endpoints.")
 	for range time.NewTicker(c.CheckInterval).C {
-		var reason string
-
-		res, err := client.Do(req)
-
-		requestsTotal.With(prometheus.Labels{
-			"status":   fmt.Sprintf("%d", res.StatusCode),
-			"endpoint": instanceHealthURI,
-		}).Inc()
-
-		switch {
-		case err != nil:
-			reason = err.Error()
-		case res.StatusCode != http.StatusOK:
-			reason = fmt.Sprintf("Response status: %s", res.Status)
-		default:
-			instanceHealth.Set(1)
-			// On nil errors, user is expected to close the body.
-			res.Body.Close()
-			continue
+		if err := healthCheck(client, req); err != nil {
+			c.StderrLogger.Println(err)
 		}
-		instanceHealth.Set(0)
-		c.StderrLogger.Printf("Endpoint %s failed with: %s\n", instanceHealthURI, reason)
 	}
+}
+
+func healthCheck(client *http.Client, req *http.Request) error {
+	res, err := client.Do(req)
+	if err != nil {
+		errorsTotal.Inc()
+		return fmt.Errorf("Endpoint %s failed with: %w", instanceHealthURI, err)
+	}
+
+	defer res.Body.Close()
+
+	requestsTotal.With(prometheus.Labels{
+		"status":   fmt.Sprintf("%d", res.StatusCode),
+		"endpoint": instanceHealthURI,
+	}).Inc()
+
+	if res.StatusCode != http.StatusOK {
+		instanceHealth.Set(0)
+		return fmt.Errorf("Endpoint %s failed with: Status code is not OK", instanceHealthURI)
+	}
+
+	instanceHealth.Set(1)
+	return nil
 }
 
 func main() {
 	c := GenConfig()
 	errChan := make(chan error)
-	go serveMetrics(errChan)
+	go serveMetrics(&c, errChan)
 	go run(&c, errChan)
 
 	if err := <-errChan; err != nil {
 		log.Fatal(err)
 	}
-
 }

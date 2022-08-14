@@ -13,6 +13,7 @@ in pkgs.mkShell {
     pkgs.gomod2nix
 
     pkgs.gotools
+    pkgs.gofumpt
     pkgs.golangci-lint
     pkgs.gopls
     pkgs.go-outline

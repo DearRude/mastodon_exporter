@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	InstanceURI   string
+	Port          int
 	CheckInterval time.Duration
 	StderrLogger  log.Logger
 }
@@ -20,6 +21,7 @@ func GenConfig() Config {
 	fs := flag.NewFlagSet("mastodon_exporter", flag.ContinueOnError)
 	var (
 		instanceUri   = fs.String("instanceUri", "", "URI of the mastodon instance")
+		port          = fs.Int("port", 2112, "exposed port of exporter")
 		checkInterval = fs.Duration("checkInterval", 30*time.Second, "Interval for check requests in go duratrion format")
 		_             = fs.String("config", ".env", "config file (optional)")
 	)
@@ -34,6 +36,7 @@ func GenConfig() Config {
 
 	return Config{
 		InstanceURI:   *instanceUri,
+		Port:          *port,
 		CheckInterval: *checkInterval,
 		StderrLogger:  *log.New(os.Stderr, "", log.LstdFlags),
 	}
