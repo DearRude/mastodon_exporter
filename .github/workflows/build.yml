@@ -1,18 +1,34 @@
-name: Build Docker
+name: Build docker and nix
 
 on:
   push:
     branches: ['master']
+    paths-ignore:
+    - '**.md'
+    - '**.org'
 
 jobs:
-  build-and-push:
+  build-flake-nix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v2
+    - uses: actions/checkout@3
+    - uses: nixbuild/nix-quick-install-action@v16
+      with:
+        nix_conf: experimental-features = nix-command flakes
+    - uses: cachix/cachix-action@v10
+      with:
+        name: mastodon-exporter
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: nix build .
+
+  build-push-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
-      - uses: actions/checkout@v2
-      - uses: imjasonh/setup-ko@v0.4
+          go-version: 1.19
+      - uses: actions/checkout@v3
+      - uses: imjasonh/setup-ko@v0.5
       - run: ko publish -B ./
         env:
           KO_DOCKER_REPO: ghcr.io/dearrude
