@@ -1,0 +1,32 @@
+name: Lint and format
+
+on:
+  pull_request:
+    paths-ignore:
+    - '**.md'
+  push:
+    paths-ignore:
+    - '**.md'
+
+jobs:
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: nixbuild/nix-quick-install-action@v16
+      with:
+        nix_conf: experimental-features = nix-command flakes
+    - uses: actions/checkout@v3
+    - name: Print nixpkgs version
+      run: nix-instantiate --eval -E '(import <nixpkgs> {}).lib.version'
+    - name: Check format
+      run: nix run nixpkgs#golangci-lint -- run
+
+  nixfmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: nixbuild/nix-quick-install-action@v16
+      with:
+        nix_conf: experimental-features = nix-command flakes
+    - uses: actions/checkout@v3
+    - name: Check format
+      run: nix run nixpkgs#nixfmt -- --check *.nix
