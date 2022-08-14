@@ -45,12 +45,12 @@ func run(c *Config, errorChan chan<- error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf(apiFormat, c.InstanceURI, instanceHealthURI), nil)
 	if err != nil {
 		errorChan <- fmt.Errorf("Unable to form request: %w", err)
+		return
 	}
 	req.Header.Set("User-Agent", "mastodon_exporter")
 
-	ticker := time.NewTicker(c.CheckInterval)
 	log.Printf("Start iterating on endpoints.")
-	for range ticker.C {
+	for range time.NewTicker(c.CheckInterval).C {
 		var reason string
 
 		res, err := client.Do(req)
@@ -67,6 +67,8 @@ func run(c *Config, errorChan chan<- error) {
 			reason = fmt.Sprintf("Response status: %s", res.Status)
 		default:
 			instanceHealth.Set(1)
+			// On nil errors, user is expected to close the body.
+			res.Body.Close()
 			continue
 		}
 		instanceHealth.Set(0)
