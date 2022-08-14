@@ -29,5 +29,16 @@ $ go run .
 $ docker run ghcr.io/dearrude/mastodon_exporter:latest
 #+END_SRC
 
+*** Nix
+To run:
+#+BEGIN_SRC sh
+$ nix run github.com/dearrude/mastodon_exporter
+#+END_SRC
+
+To set up development environment:
+#+BEGIN_SRC sh
+$ nix develop
+#+END_SRC
+
 ** Licence
 AGPLv3+
