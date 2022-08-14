@@ -32,7 +32,7 @@ func serveMetrics(errorChan chan<- error) {
 	reg.MustRegister(instanceHealth)
 	reg.MustRegister(requestsTotal)
 
-	registry.Register(collectors.NewGoCollector())
+	errorChan <- registry.Register(collectors.NewGoCollector())
 	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	log.Printf("Serve the metrics http server.")
 	errorChan <- http.ListenAndServe(":2112", nil)
