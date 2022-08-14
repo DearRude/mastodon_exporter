@@ -1,6 +1,7 @@
 #+TITLE: mastodon_exporter
 
 [[https://github.com/DearRude/mastodon_exporter/actions/workflows/build.yml/badge.svg]]
+[[https://github.com/DearRude/mastodon_exporter/actions/workflows/lint.yml/badge.svg]]
 [[https://img.shields.io/github/license/dearrude/mastodon_exporter.svg]]
 [[https://img.shields.io/github/last-commit/dearrude/mastodon_exporter.svg]]
 
