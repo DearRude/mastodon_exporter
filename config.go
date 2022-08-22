@@ -23,8 +23,14 @@ func GenConfig() Config {
 		instanceUri   = fs.String("instanceUri", "", "URI of the mastodon instance")
 		port          = fs.Int("port", 2112, "exposed port of exporter")
 		checkInterval = fs.Duration("checkInterval", 30*time.Second, "Interval for check requests in go duratrion format")
-		_             = fs.String("config", ".env", "config file (optional)")
 	)
+
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		fs.String("config", "", "config file")
+	} else {
+		fs.String("config", ".env", "config file")
+	}
+
 	err := ff.Parse(fs, os.Args[1:],
 		ff.WithEnvVars(),
 		ff.WithConfigFileFlag("config"),
